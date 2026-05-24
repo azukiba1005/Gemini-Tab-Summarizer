@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gemini Tab Summarizer</title>
+  <!-- Google Fonts: Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="logo-area">
+        <svg class="logo-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L14.8 8.4L21.2 9.6L16.3 13.9L17.8 20.3L12 17L6.2 20.3L7.7 13.9L2.8 9.6L9.2 8.4L12 2Z" fill="url(#logo-grad)"/>
+          <defs>
+            <linearGradient id="logo-grad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#8B5CF6"/>
+              <stop offset="0.5" stop-color="#3B82F6"/>
+              <stop offset="1" stop-color="#06B6D4"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <h1>Tab Summarizer</h1>
+      </div>
+      <div class="header-actions" style="display: flex; gap: 8px;">
+        <button id="history-btn" class="icon-btn" title="History">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </button>
+        <button id="settings-btn" class="icon-btn" title="Settings">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main View -->
+    <main id="main-view" class="view-panel active">
+      <!-- Tabs Search & Actions -->
+      <div class="search-and-actions">
+        <div class="search-box">
+          <input type="text" id="tab-search" placeholder="Search open tabs...">
+          <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+        </div>
+        <div class="bulk-selectors">
+          <button id="select-all" class="btn-sm text-btn">All</button>
+          <button id="select-none" class="btn-sm text-btn">Clear</button>
+          <button id="select-active" class="btn-sm text-btn">Active</button>
+          <button id="select-domain" class="btn-sm text-btn" title="Select tabs from the same website domain as current active tab">Same Domain</button>
+        </div>
+      </div>
+
+      <!-- Tab List -->
+      <div class="tab-list-container">
+        <div class="tab-list-header">
+          <span class="selection-count"><span id="checked-count">0</span> / <span id="total-count">0</span> Tabs Selected</span>
+          <button id="refresh-tabs-btn" class="icon-btn-sm" title="Refresh tab list">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+            </svg>
+          </button>
+        </div>
+        <div id="tab-list" class="tab-list-items">
+          <!-- Dynamically populated -->
+          <div class="list-placeholder">Loading open tabs...</div>
+        </div>
+      </div>
+
+      <!-- Config & Summarize Action -->
+      <div class="summarize-config-panel">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="summarize-style">Summarization Style</label>
+            <select id="summarize-style" class="form-select">
+              <option value="bullet" selected>Bullet Points (要点箇条書き)</option>
+              <option value="executive">Executive Summary (要約・結論)</option>
+              <option value="detailed">Detailed Analysis (詳細な分析)</option>
+              <option value="compare">Synthesized Comparison (複数比較)</option>
+              <option value="custom">Custom Prompt (カスタム指示)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="action-buttons-group">
+          <button id="summarize-btn" class="btn btn-primary" disabled>
+            <span class="btn-text">Summarize Selected Tabs</span>
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg>
+          </button>
+          
+          <button id="notebooklm-btn" class="btn btn-secondary" disabled>
+            <span class="btn-text">Send to NotebookLM</span>
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- Results View -->
+    <section id="results-view" class="view-panel">
+      <div class="results-header">
+        <button id="results-back-btn" class="btn-back">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          Back
+        </button>
+        <div class="results-actions">
+          <button id="copy-summary-btn" class="icon-btn-text" title="Copy to clipboard">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-3 8h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+            </svg>
+            Copy
+          </button>
+          <button id="download-summary-btn" class="icon-btn-text" title="Download markdown file">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+            </svg>
+            Export
+          </button>
+        </div>
+      </div>
+
+      <!-- Loading / Progress State -->
+      <div id="summarize-progress" class="progress-container hidden">
+        <div class="loader-spinner"></div>
+        <div class="progress-details">
+          <p id="progress-status">Initializing...</p>
+          <div class="progress-bar-bg">
+            <div id="progress-bar-fill" class="progress-bar-fill" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scrollable content -->
+      <div class="results-body">
+        <div id="summary-content" class="markdown-body">
+          <!-- Summarized text renders here -->
+        </div>
+
+        <!-- Tab Chat Section -->
+        <div id="chat-section" class="chat-section hidden">
+          <div class="chat-header">
+            <h3>Ask questions about these tabs</h3>
+          </div>
+          <div id="chat-messages" class="chat-messages">
+            <!-- Chat history renders here -->
+          </div>
+          <form id="chat-form" class="chat-form">
+            <input type="text" id="chat-input" placeholder="e.g., What are the common points?..." autocomplete="off">
+            <button type="submit" id="chat-submit-btn" class="icon-btn-primary">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- Settings Overlay Page -->
+    <div id="settings-overlay" class="settings-overlay">
+      <div class="settings-container">
+        <div class="settings-header">
+          <h2>Extension Settings</h2>
+          <button id="settings-close-btn" class="icon-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        
+        <div class="settings-body">
+          <!-- API Key Section -->
+          <div class="settings-group">
+            <div class="group-header">
+              <label for="settings-api-key">Gemini API Key</label>
+              <a href="https://aistudio.google.com/" target="_blank" class="link-sm">Get Key (Google AI Studio)</a>
+            </div>
+            <div class="input-password-wrapper">
+              <input type="password" id="settings-api-key" placeholder="AIzaSy...">
+              <button id="toggle-key-visibility" class="btn-toggle-eye" type="button">
+                <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
+            <p class="help-text">Your API key is stored locally on this machine and sent directly to Google.</p>
+          </div>
+
+          <!-- Model selection -->
+          <div class="settings-group">
+            <label for="settings-model">Default Model</label>
+            <select id="settings-model" class="form-select">
+              <option value="gemini-2.5-flash">Gemini 2.5 Flash (Recommended - Fast & Capable)</option>
+              <option value="gemini-2.5-pro">Gemini 2.5 Pro (Deep reasoning, smart)</option>
+              <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+              <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+              <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+            </select>
+          </div>
+
+          <!-- Output Language selection -->
+          <div class="settings-group">
+            <label for="settings-language">Output Language</label>
+            <select id="settings-language" class="form-select">
+              <option value="auto">Auto (Match Page/User Question)</option>
+              <option value="ja">Japanese (日本語)</option>
+              <option value="en">English</option>
+            </select>
+          </div>
+
+          <!-- Temperature -->
+          <div class="settings-group">
+            <div class="slider-label-row">
+              <label for="settings-temperature">Temperature (Creativity)</label>
+              <span id="temp-val-display">0.2</span>
+            </div>
+            <input type="range" id="settings-temperature" min="0" max="1" step="0.1" value="0.2" class="form-slider">
+            <div class="slider-scales">
+              <span>Precise (0.0)</span>
+              <span>Balanced</span>
+              <span>Creative (1.0)</span>
+            </div>
+          </div>
+
+          <!-- Custom Prompt Template -->
+          <div class="settings-group">
+            <label for="settings-custom-prompt">Custom Prompt Template</label>
+            <textarea id="settings-custom-prompt" rows="4" class="form-textarea" placeholder="Describe how you want Gemini to summarize the pages when selecting 'Custom Prompt' style. Use variables if needed."></textarea>
+            <p class="help-text">This instructions will be executed when "Custom Prompt" style is active.</p>
+          </div>
+        </div>
+
+        <div class="settings-footer">
+          <button id="settings-save-btn" class="btn btn-primary">Save Settings</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- History Overlay Page -->
+    <div id="history-overlay" class="settings-overlay">
+      <div class="settings-container">
+        <div class="settings-header">
+          <h2>Summary History</h2>
+          <button id="history-close-btn" class="icon-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        
+        <div class="settings-body" id="history-items-container">
+          <!-- Dynamically populated history cards -->
+          <div class="list-placeholder">No history found.</div>
+        </div>
+
+        <div class="settings-footer">
+          <button id="clear-history-btn" class="btn btn-secondary" style="color: var(--danger); border-color: var(--danger); font-weight: 500;">
+            Clear All History
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="marked.min.js"></script>
+  <script src="api.js"></script>
+  <script src="sidepanel.js"></script>
+</body>
+</html>
